@@ -17,19 +17,7 @@ export class AppComponent {
   startNode;
   endNode;
   click: number = 0;
-  public fruits: string[] = [
-    "Write00",
-    "Write01",
-    "Write02",
-    "Write03",
-    "Write04",
-    "Write05",
-    "Write06",
-    "Write07",
-    "Write08",
-    "Write09",
-    "Write10"
-  ];
+  public fruits: string[] = ["Normal", "Webhook", "TopicSearch", "ModelSearch"];
 
   public apples: string[] = [];
   public bananas: string[] = [];
@@ -167,19 +155,29 @@ export class AppComponent {
       if (
         this.hierarchialGraph.nodes.find(c => c.id === this.previouseventdd.id)
       ) {
-        this.hierarchialGraph.links.push(data1);
+        //     this.hierarchialGraph.links.push(data1);
       }
     }
     this.previouseventdd = data;
     this.hierarchialGraph.nodes = [...this.hierarchialGraph.nodes];
     this.hierarchialGraph.links = [...this.hierarchialGraph.links];
-
+    console.log(JSON.stringify(this.hierarchialGraph));
     list.splice(index, 0, event.data);
   }
   onmouseup(node) {
-    console.log("up" + node);
+    console.log("up" + JSON.stringify(node));
+    debugger;
+    this.endNode = node;
+    let link = {
+      source: this.startNode.id,
+      target: this.endNode.id
+    };
+    this.hierarchialGraph.links.push(link);
+    console.log(JSON.stringify(this.hierarchialGraph));
+    this.hierarchialGraph.links = [...this.hierarchialGraph.links];
   }
   onmousedown(node) {
-    console.log("down" + node);
+    this.startNode = node;
+    console.log("down" + JSON.stringify(node));
   }
 }
