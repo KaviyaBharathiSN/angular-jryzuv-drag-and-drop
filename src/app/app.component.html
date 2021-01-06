@@ -1,0 +1,43 @@
+<div class="layout-padding" style="padding-bottom:40%;">
+	<pre><h1>Tasks</h1></pre>
+	<div dndDropzone dndEffectAllowed="move" class="dndList">
+		<div dndPlaceholderRef class="dndPlaceholder"></div>
+		<div style="width: 16%; margin: 10px; float: left; border: 1px solid; padding: 1px;"
+			*ngFor="let fruit of fruits" [dndDraggable]="fruit" [dndType]="fruit" dndEffectAllowed="move"
+			(dndMoved)="onDragged(fruit, fruits)">
+			<h4 style="    margin: 7px;  text-align: center">{{fruit}}</h4>
+		</div>
+	</div>
+
+	<br>
+</div>
+
+	<div (dndDrop)="onDrop($event, bananas) " dndDropzone dndEffectAllowed="move" style="border: 1px solid #cdcdcd;">
+		<ngx-graph class="chart-container" [links]="hierarchialGraph.links" [nodes]="hierarchialGraph.nodes"
+			[legend]="false" [curve]="curve" [enableZoom]="false" [draggingEnabled]="false">
+			<ng-template #defsTemplate>
+				<svg:marker id="arrow" viewBox="0 -5 10 10" refX="8" refY="0" markerWidth="4" markerHeight="6"
+					orient="auto">
+					<svg:path d="M0,-5L10,0L0,5" class="arrow-head" />
+				</svg:marker>
+			</ng-template>
+
+			<ng-template #nodeTemplate let-node>
+				<svg:g class="node" (click)="onClick(node)" (mousedown)="onmousedown(node)" (mouseup)="onmouseup(node)">
+					<svg:rect [attr.width]="node.width" [attr.height]="node.height"
+						[attr.fill]="node.color || node.options.color" />
+					<svg:text alignment-baseline="central" [attr.x]="8" [attr.y]="node.height / 2">{{node.label}}
+					</svg:text>
+				</svg:g>
+			</ng-template>
+
+			<ng-template #linkTemplate let-link>
+				<svg:g class="edge">
+					<svg:path class="line" stroke-width="8" [attr.width]="150" (click)="RemoveLink(link)"
+						[attr.style.cursor]="pointer">
+					</svg:path>
+				</svg:g>
+			</ng-template>
+
+		</ngx-graph>
+	</div>
