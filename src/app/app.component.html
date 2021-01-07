@@ -11,10 +11,11 @@
 
 	<br>
 </div>
-
 	<div (dndDrop)="onDrop($event, bananas) " dndDropzone dndEffectAllowed="move" style="border: 1px solid #cdcdcd;">
-		<ngx-graph class="chart-container" [links]="hierarchialGraph.links" [nodes]="hierarchialGraph.nodes"
-			[legend]="false" [curve]="curve" [enableZoom]="false" [draggingEnabled]="false">
+
+		<ngx-graph (mousemove)="updatePath($event)" class="chart-container" [links]="hierarchialGraph.links"
+			[nodes]="hierarchialGraph.nodes" [legend]="false" [curve]="curve" [enableZoom]="false"
+			[draggingEnabled]="false">
 			<ng-template #defsTemplate>
 				<svg:marker id="arrow" viewBox="0 -5 10 10" refX="8" refY="0" markerWidth="4" markerHeight="6"
 					orient="auto">
@@ -23,21 +24,38 @@
 			</ng-template>
 
 			<ng-template #nodeTemplate let-node>
-				<svg:g class="node" (click)="onClick(node)" (mousedown)="onmousedown(node)" (mouseup)="onmouseup(node)">
+				<svg:g class="node" (click)="onClick(node)">
 					<svg:rect [attr.width]="node.width" [attr.height]="node.height"
 						[attr.fill]="node.color || node.options.color" />
 					<svg:text alignment-baseline="central" [attr.x]="8" [attr.y]="node.height / 2">{{node.label}}
 					</svg:text>
+					<svg:circle class="drag-circle" [attr.cx]="node.width" [attr.cy]="node.height / 2" [attr.r]="3"
+						fill="#ff0000" ngx-tooltip tooltipTitle="New Action" tooltipPlacement="right"
+						(mousedown)="onNodeCircleMouseDown($event, node)" (mouseup)="onMouseUp($event, node)">
+					</svg:circle>
+
 				</svg:g>
 			</ng-template>
 
 			<ng-template #linkTemplate let-link>
 				<svg:g class="edge">
-					<svg:path class="line" stroke-width="8" [attr.width]="150" (click)="RemoveLink(link)"
+					<svg:path class="line" stroke-width="3" [attr.width]="150" (click)="RemoveLink(link)"
 						[attr.style.cursor]="pointer">
 					</svg:path>
 				</svg:g>
 			</ng-template>
-
+			<!-- Dragging line -->
+			<svg:line class="line drag-line" *ngIf="draggingNode" [attr.x1]="startingDragPosition.x"
+				[attr.y1]="startingDragPosition.y" [attr.x2]="currentDragPosition.x" [attr.y2]="currentDragPosition.y"
+				marker-end="url(#arrow)" />
 		</ngx-graph>
+
+
+
+
+		<!-- <svg:line class="shape" *ngIf="createdShape &&createdShape.type=='line'" [attr.x1]="createdShape.x"
+			[attr.y1]="createdShape.y" [attr.x2]="createdShape.x*1+createdShape.w*1"
+			[attr.y2]="createdShape.y*1+createdShape.h*1">
+		</svg:line> -->
+
 	</div>

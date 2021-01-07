@@ -1,6 +1,16 @@
-import { Component } from "@angular/core";
+import { Component, HostListener } from "@angular/core";
 import { DndDropEvent } from "ngx-drag-drop";
 import * as shape from "d3-shape";
+import {
+  Edge,
+  Node,
+  ClusterNode,
+  Layout,
+  NodePosition,
+  GraphComponent
+} from "@swimlane/ngx-graph";
+import { TweenLite } from "gsap";
+import { Shape } from "../Shape";
 
 @Component({
   selector: "my-app",
@@ -8,6 +18,8 @@ import * as shape from "d3-shape";
   styleUrls: ["./app.component.css"]
 })
 export class AppComponent {
+  shapesToDraw: Shape[] = [];
+  shapeType = "line";
   name = "Angular";
   hierarchialGraph = { nodes: [], links: [] };
   curve = shape.curveLinear;
@@ -17,6 +29,13 @@ export class AppComponent {
   startNode;
   endNode;
   click: number = 0;
+  createdShape: Shape;
+  isDragging = false;
+  draggingNode = null;
+  startingDragPosition;
+  graphEl: GraphComponent;
+  currentDragPosition;
+  mouseOverNode;
   public fruits: string[] = ["Normal", "Webhook", "TopicSearch", "ModelSearch"];
 
   public apples: string[] = [];
@@ -164,7 +183,7 @@ export class AppComponent {
     console.log(JSON.stringify(this.hierarchialGraph));
     list.splice(index, 0, event.data);
   }
-  onmouseup(node) {
+  onmouseup(evt, node) {
     console.log("up" + JSON.stringify(node));
     debugger;
     this.endNode = node;
@@ -174,10 +193,105 @@ export class AppComponent {
     };
     this.hierarchialGraph.links.push(link);
     console.log(JSON.stringify(this.hierarchialGraph));
+    this.createdShape = null;
     this.hierarchialGraph.links = [...this.hierarchialGraph.links];
   }
-  onmousedown(node) {
+  onmousedown(evt, node) {
     this.startNode = node;
+    this.createdShape = {
+      type: this.shapeType,
+      x: evt.offsetX,
+      y: evt.offsetY,
+      w: 0,
+      h: 0
+    };
+    this.shapesToDraw.push(this.createdShape);
     console.log("down" + JSON.stringify(node));
+  }
+  onNodeCircleMouseDown(event: any, node: Node): void {
+    this.isDragging = true;
+    this.draggingNode = node;
+
+    this.startingDragPosition = {
+      x: (event.layerX - this.graphEl.panOffsetX) / this.graphEl.zoomLevel,
+      y: (event.layerY - this.graphEl.panOffsetY) / this.graphEl.zoomLevel
+    };
+
+    this.currentDragPosition = {
+      x: node.position.x + node.dimension.width / 2,
+      y: node.position.y
+    };
+
+    setTimeout(() => {
+      this.mouseOverNode = undefined;
+    });
+  }
+  /**
+   * On mouse up event
+   *
+   */
+  @HostListener("document:mousemove", ["$event"])
+  onMouseMove(event: MouseEvent): void {
+    if (!this.isDragging) {
+      return;
+    }
+    this.currentDragPosition.x += event.movementX / this.graphEl.zoomLevel;
+    this.currentDragPosition.y += event.movementY / this.graphEl.zoomLevel;
+  }
+
+  /**
+   * On mouse up event
+   *
+   */
+  @HostListener("document:mouseup", ["$event"])
+  onMouseUp(event: MouseEvent, node: any): void {
+    if (this.isDragging && this.draggingNode) {
+      // logic if mouse is released over another node
+      this.endNode = node;
+      let link = {
+        source: this.draggingNode.id,
+        target: this.endNode.id
+      };
+      this.hierarchialGraph.links.push(link);
+      console.log(JSON.stringify(this.hierarchialGraph));
+      this.createdShape = null;
+      this.hierarchialGraph.links = [...this.hierarchialGraph.links];
+    }
+
+    this.isDragging = false;
+    this.draggingNode = undefined;
+  }
+
+  updatePath(evt) {
+    console.log("updatePath" + this.createdShape);
+    if (!this.startNode) return;
+    if (this.createdShape) {
+      this.createdShape.w = evt.offsetX - this.createdShape.x;
+      this.createdShape.h = evt.offsetY - this.createdShape.y;
+    }
+  }
+  startDrawing(evt: MouseEvent) {
+    this.createdShape = {
+      type: this.shapeType,
+      x: evt.offsetX,
+      y: evt.offsetY,
+      w: 0,
+      h: 0
+    };
+    console.log("start");
+    this.shapesToDraw.push(this.createdShape);
+  }
+
+  keepDrawing(evt: MouseEvent) {
+    if (this.createdShape) {
+      this.createdShape.w = evt.offsetX - this.createdShape.x;
+      this.createdShape.h = evt.offsetY - this.createdShape.y;
+    }
+    console.log("keep");
+  }
+
+  stopDrawing() {
+    console.log("end");
+    this.createdShape = null;
   }
 }
